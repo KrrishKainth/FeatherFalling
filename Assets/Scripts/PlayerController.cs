@@ -7,10 +7,11 @@ public class PlayerController : MonoBehaviour
 {
 
     Camera camera;
-    Rigidbody2D rb;
+    public CameraController cameraController;
+    public Rigidbody2D rb;
     bool inJump;
     public int numJumps;
-    float maxJumpPower = 20;
+    float maxJumpPower = 12.5f;
     float maxJumpChargeTime = 0.7f;
     float jumpChargeStart;
     bool jumpCharging;
@@ -19,8 +20,11 @@ public class PlayerController : MonoBehaviour
     float bouncePower = 2f;
     Vector2 bounceImpulse;
     float bounceStart;
-    float bounceStickTime = 0.25f;
+    float bounceStickTime = 0.15f;
     float gravity;
+    List<GameObject> fruits;
+    float inGameTimer;
+    bool inMenu;
 
     // Start is called before the first frame update
     void Start()
@@ -34,21 +38,26 @@ public class PlayerController : MonoBehaviour
         camera = Camera.main;
         jumpChargeStart = 0;
         gravity = rb.gravityScale;
+        fruits = new List<GameObject>();
+        inGameTimer = 0;
+        inMenu = false;
     }
 
-    void FixedUpdate()
+    void Update()
     {
         refreshJump();
         if (inBounce)
         {
             bounce();
         }
+        
+        inGameTimer += Time.deltaTime;
     }
 
     // Movement
     void OnJump()
     {
-        if (numJumps > 0)
+        if (numJumps > 0 && !inMenu)
         {
             if ((int) jumpAction.phase == 3)  // Jump charge started
             {
@@ -98,33 +107,31 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Collision with platforms 
-    void OnCollisionEnter2D(Collision2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
+        // Collision with fruit
+        if (other.gameObject.tag == "Fruit")
+        {
+            fruits.Add(other.gameObject);
+            other.gameObject.SetActive(false);
+            numJumps++;
+        }
+
+        // On a platform
         if (other.gameObject.tag == "Platform")
         {
-            Vector2 collisionDir = other.GetContact(0).normal;
-            if (collisionDir == Vector2.up)  // bottom collision -> landed on platform
-            {
-                inJump = false;
-            }
-            else  // sideways or top collision
-            {
-                if (inJump)
-                {
-                    // Player should bounce off wall
-                    inBounce = true;
-                    Vector2 playerVelocity = -1 * other.relativeVelocity;
-                    Vector2 velocityIntoWall = (playerVelocity.x * collisionDir.x + 
-                                                playerVelocity.y * collisionDir.y) * collisionDir;
-                    bounceImpulse = playerVelocity - bouncePower * velocityIntoWall;
-                    bounceStart = Time.time;
-                    rb.velocity = new Vector2(0, 0);
-                    rb.gravityScale = 0f;
-                }
-            }
+            inJump = false;
         }
     }
+
+    // void OnTriggerStay2D(Collider2D other)
+    // {
+    //     // On a platform
+    //     if (other.gameObject.tag == "Platform")
+    //     {
+    //         inJump = false;
+    //     }
+    // }
 
     // If feet hitbox leave a platform, player is in air
     void OnTriggerExit2D(Collider2D other)
@@ -135,12 +142,47 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Collision with platforms 
+    void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.tag == "Platform")
+        {
+            Vector2 collisionDir = other.GetContact(0).normal;
+            if (collisionDir != Vector2.up && inJump)  // sideways or top collision
+            {
+                // Player should bounce off wall
+                inBounce = true;
+                Vector2 playerVelocity = -1 * other.relativeVelocity;
+                Vector2 velocityIntoWall = (playerVelocity.x * collisionDir.x + 
+                                            playerVelocity.y * collisionDir.y) * collisionDir;
+                bounceImpulse = playerVelocity - bouncePower * velocityIntoWall;
+                bounceStart = Time.time;
+                rb.velocity = new Vector2(0, 0);
+                rb.gravityScale = 0f;
+            }
+            else if (collisionDir == Vector2.up)
+            {
+                // Shake camera if you hit the ground too hard
+                if (Mathf.Abs(other.relativeVelocity.y) > 15)
+                {
+                    cameraController.cameraShake();
+                }
+            }
+        }
+    }
+
     void refreshJump()
     {
-        // Refresh jump when stationary on a platform
+        // Refresh jump and fruits when stationary on a platform
         if (rb.velocity.magnitude <= 0.1 && !inJump)
         {
             numJumps = 1;
+
+            foreach (GameObject f in fruits)
+            {
+                f.SetActive(true);
+            }
+            fruits.Clear();
         }
     }
 

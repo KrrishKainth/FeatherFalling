@@ -9,6 +9,8 @@ TagManager:
   - PlayerTop
   - PlayerLeft
   - PlayerRight
+  - Fruit
+  - Wind
   layers:
   - Default
   - TransparentFX
