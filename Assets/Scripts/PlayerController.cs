@@ -20,11 +20,13 @@ public class PlayerController : MonoBehaviour
     float bouncePower = 2f;
     Vector2 bounceImpulse;
     float bounceStart;
-    float bounceStickTime = 0.15f;
+    float bounceStickTime = 0.217f;  // match squish animation duration
     float gravity;
     List<GameObject> fruits;
     float inGameTimer;
     bool inMenu;
+    Animator animator;
+    float scale;
 
     // Start is called before the first frame update
     void Start()
@@ -41,6 +43,8 @@ public class PlayerController : MonoBehaviour
         fruits = new List<GameObject>();
         inGameTimer = 0;
         inMenu = false;
+        animator = gameObject.GetComponent<Animator>();
+        scale = transform.localScale.x;
     }
 
     void Update()
@@ -52,6 +56,37 @@ public class PlayerController : MonoBehaviour
         }
         
         inGameTimer += Time.deltaTime;
+
+        // Animations
+        animator.SetBool("onGround", !inJump);
+        animator.SetFloat("yVelocity", rb.velocity.y);
+        animator.SetFloat("xSpeed", Mathf.Abs(rb.velocity.x));
+        animator.SetBool("jumpCharging", jumpCharging);
+        animator.SetBool("inBounce", inBounce);
+
+        if (!jumpCharging && !inBounce)
+        {
+            // If x velocity is 0, use the last direction of travel
+            if (rb.velocity.x > 0)
+            {
+                transform.localScale = new Vector2(scale, scale);
+            }
+            else if (rb.velocity.x < 0)
+            {
+                transform.localScale = new Vector2(-1 * scale, scale);
+            }
+        }
+        else if (jumpCharging) // If jump charging, face direction aimed at by mous
+        {
+            if (camera.ScreenToWorldPoint(Input.mousePosition).x <= transform.position.x)
+            {
+                transform.localScale = new Vector2(scale, scale);
+            }
+            else
+            {
+                transform.localScale = new Vector2(-1 * scale, scale);
+            }
+        }
     }
 
     // Movement
@@ -148,7 +183,12 @@ public class PlayerController : MonoBehaviour
         if (other.gameObject.tag == "Platform")
         {
             Vector2 collisionDir = other.GetContact(0).normal;
-            if (collisionDir != Vector2.up && inJump)  // sideways or top collision
+
+            // Collision with wall or ceiling while in air -> bounce
+            if (inJump && 
+                ((collisionDir == Vector2.left) || 
+                (collisionDir == Vector2.right) || 
+                (collisionDir == Vector2.down)))
             {
                 // Player should bounce off wall
                 inBounce = true;
@@ -159,6 +199,15 @@ public class PlayerController : MonoBehaviour
                 bounceStart = Time.time;
                 rb.velocity = new Vector2(0, 0);
                 rb.gravityScale = 0f;
+
+                if (collisionDir == Vector2.down)
+                {
+                    animator.SetBool("sideBounce", false);
+                }
+                else
+                {
+                    animator.SetBool("sideBounce", true);
+                }
             }
             else if (collisionDir == Vector2.up)
             {
