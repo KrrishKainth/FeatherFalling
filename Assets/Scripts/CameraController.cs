@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
+using UnityEngine.UI;
 
 public class CameraController : MonoBehaviour
 {
@@ -19,9 +19,14 @@ public class CameraController : MonoBehaviour
     float shakeDuration = 0.25f;
     public PlayerController player;
     float mapStartY;
-    float mapEndY = 17f;
+    float mapEndY = 55f;
     GameObject endFadeBox;
-    public TMP_Text progressText;
+    public Text progressText;
+    public Text timerText;
+    bool complete;
+    public GameObject overlay;
+    AudioSource audioSource;
+    float fadeTime = 3f;
 
     // Start is called before the first frame update
     void Start()
@@ -34,46 +39,71 @@ public class CameraController : MonoBehaviour
         endFadeBox = transform.GetChild(0).gameObject;
         endFadeBox.SetActive(false);
         mapStartY = player.gameObject.transform.position.y;
+        complete = false;
+        audioSource = gameObject.GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        float playerY = player.gameObject.transform.position.y;
-
-        // Player reached top -> trigger transition to win scene
-        if (playerY >= mapEndY)
+        if (!complete)  // If player not at end
         {
-            player.rb.velocity = new Vector2(0, 0);
-            player.rb.gravityScale = 0f;
-            endFadeBox.SetActive(true);
-        }
+            float playerY = player.gameObject.transform.position.y;
 
-        if (!newSection)
-        {
-            if (playerY > sectionCeilings[sectionNum])
+            // Player reached top -> trigger transition to win scene
+            if (playerY >= mapEndY)
             {
-                sectionNum++;
-                newSection = true;
+                // Game time
+                string minutes = ((int)(player.inGameTimer / 60)).ToString();
+                int sec = (int) (player.inGameTimer % 60);
+                string seconds;
+                if (sec < 10)
+                {
+                    seconds = "0" + sec.ToString();
+                }
+                else
+                {
+                    seconds = sec.ToString();
+                }
+                timerText.text = minutes + ":" + seconds;
+
+                player.gameObject.SetActive(false);
+                overlay.SetActive(false);
+                endFadeBox.SetActive(true);
+                complete = true;
+                return;
             }
-            else if (playerY < sectionCeilings[sectionNum - 1])
+
+            if (!newSection)
             {
-                sectionNum--;
-                newSection = true;
+                if (playerY > sectionCeilings[sectionNum])
+                {
+                    sectionNum++;
+                    newSection = true;
+                }
+                else if (playerY < sectionCeilings[sectionNum - 1])
+                {
+                    sectionNum--;
+                    newSection = true;
+                }
             }
-        }
 
-        if (newSection)
+            if (newSection)
+            {
+                moveCamera(sectionCeilings[sectionNum] - sectionHeight / 2);
+            }
+
+            if (shake)
+            {
+                cameraShakePrivate();
+            }
+
+            progressText.text = ((int) ((playerY - mapStartY)/ (mapEndY - mapStartY) * 100)).ToString() + "%";
+        }
+        else  // player reached end
         {
-            moveCamera(sectionCeilings[sectionNum] - sectionHeight / 2);
+            volumeFade();
         }
-
-        if (shake)
-        {
-            cameraShakePrivate();
-        }
-
-        progressText.text = ((int) ((playerY - mapStartY)/ (mapEndY - mapStartY) * 100)).ToString() + "%";
     }
 
     void moveCamera(float targetY)
@@ -128,6 +158,14 @@ public class CameraController : MonoBehaviour
             {
                 shakeStarted = true;
             }
+        }
+    }
+
+    void volumeFade()
+    {
+        if (audioSource.volume > 0)
+        {
+            audioSource.volume -= (1 / fadeTime) * Time.deltaTime;
         }
     }
 }

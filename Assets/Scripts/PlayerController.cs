@@ -9,7 +9,7 @@ public class PlayerController : MonoBehaviour
     Camera camera;
     public CameraController cameraController;
     public Rigidbody2D rb;
-    bool inJump;
+    public bool inJump;
     public int numJumps;
     float maxJumpPower = 12.5f;
     float maxJumpChargeTime = 0.7f;
@@ -20,13 +20,20 @@ public class PlayerController : MonoBehaviour
     float bouncePower = 2f;
     Vector2 bounceImpulse;
     float bounceStart;
+    Vector2 maxBounceImpulse = new Vector2(10, 10);
     float bounceStickTime = 0.217f;  // match squish animation duration
     float gravity;
     List<GameObject> fruits;
-    float inGameTimer;
+    public float inGameTimer;
     bool inMenu;
     Animator animator;
     float scale;
+    bool practiceMode;
+
+    AudioSource audioSource;
+    public AudioClip landingSFX;
+    public AudioClip takeOffSFX;
+    public AudioClip fruitPickUpSFX;
 
     // Start is called before the first frame update
     void Start()
@@ -45,6 +52,8 @@ public class PlayerController : MonoBehaviour
         inMenu = false;
         animator = gameObject.GetComponent<Animator>();
         scale = transform.localScale.x;
+        audioSource = gameObject.GetComponent<AudioSource>();
+        practiceMode = false;
     }
 
     void Update()
@@ -60,7 +69,16 @@ public class PlayerController : MonoBehaviour
         // Animations
         animator.SetBool("onGround", !inJump);
         animator.SetFloat("yVelocity", rb.velocity.y);
+        if (Mathf.Abs(rb.velocity.y) < Mathf.Pow(10, -2))
+        {
+            animator.SetFloat("yVelocity", 0);
+        }
         animator.SetFloat("xSpeed", Mathf.Abs(rb.velocity.x));
+        if (Mathf.Abs(rb.velocity.x) < Mathf.Pow(10, -2))
+        {
+            animator.SetFloat("xSpeed", 0);
+        }
+
         animator.SetBool("jumpCharging", jumpCharging);
         animator.SetBool("inBounce", inBounce);
 
@@ -87,6 +105,8 @@ public class PlayerController : MonoBehaviour
                 transform.localScale = new Vector2(-1 * scale, scale);
             }
         }
+
+        playTestMode();
     }
 
     // Movement
@@ -126,6 +146,7 @@ public class PlayerController : MonoBehaviour
                 }
                 
                 float jumpChargeTime = Time.time - jumpChargeStart;
+
                 if (jumpChargeTime > maxJumpChargeTime)
                 {
                     jumpChargeTime = maxJumpChargeTime;
@@ -134,8 +155,15 @@ public class PlayerController : MonoBehaviour
                 // Set jump power between half of max power and max power, based on jump charge time
                 float jumpPower = 0.5f * maxJumpPower * jumpChargeTime / maxJumpChargeTime + 0.5f * maxJumpPower;
 
+                // If a fruit was collected, inflate the jump charge time to assist the player
+                if (fruits.Count > 0)
+                {
+                    jumpPower *= 1.75f;
+                }
+
                 Vector2 jumpImpulse = jumpVector * jumpPower;
                 rb.AddForce(jumpImpulse, ForceMode2D.Impulse);
+                audioSource.PlayOneShot(takeOffSFX, 1f);
                 numJumps--;
                 jumpCharging = false;
             }
@@ -147,26 +175,19 @@ public class PlayerController : MonoBehaviour
         // Collision with fruit
         if (other.gameObject.tag == "Fruit")
         {
-            fruits.Add(other.gameObject);
-            other.gameObject.SetActive(false);
+            fruits.Add(other.gameObject.transform.parent.gameObject);
+            other.gameObject.transform.parent.gameObject.SetActive(false);
             numJumps++;
+            audioSource.PlayOneShot(fruitPickUpSFX, 0.5f);
         }
 
         // On a platform
         if (other.gameObject.tag == "Platform")
         {
             inJump = false;
+            audioSource.PlayOneShot(landingSFX, 1f);
         }
     }
-
-    // void OnTriggerStay2D(Collider2D other)
-    // {
-    //     // On a platform
-    //     if (other.gameObject.tag == "Platform")
-    //     {
-    //         inJump = false;
-    //     }
-    // }
 
     // If feet hitbox leave a platform, player is in air
     void OnTriggerExit2D(Collider2D other)
@@ -196,9 +217,11 @@ public class PlayerController : MonoBehaviour
                 Vector2 velocityIntoWall = (playerVelocity.x * collisionDir.x + 
                                             playerVelocity.y * collisionDir.y) * collisionDir;
                 bounceImpulse = playerVelocity - bouncePower * velocityIntoWall;
+
                 bounceStart = Time.time;
                 rb.velocity = new Vector2(0, 0);
                 rb.gravityScale = 0f;
+                audioSource.PlayOneShot(landingSFX, 1f);
 
                 if (collisionDir == Vector2.down)
                 {
@@ -215,6 +238,7 @@ public class PlayerController : MonoBehaviour
                 if (Mathf.Abs(other.relativeVelocity.y) > 15)
                 {
                     cameraController.cameraShake();
+                    audioSource.PlayOneShot(landingSFX, 1.5f);
                 }
             }
         }
@@ -243,6 +267,49 @@ public class PlayerController : MonoBehaviour
             inBounce = false;
             rb.AddForce(bounceImpulse, ForceMode2D.Impulse);
             rb.gravityScale = gravity;
+            audioSource.PlayOneShot(takeOffSFX, 1f);
         }
+    }
+
+    public void SetInMenu(bool b)
+    {
+        inMenu = b;
+    }
+
+    // Allow user to teleport for playtesting/practice
+    void playTestMode()
+    {
+        if (practiceMode)
+        {
+            if (Input.GetKeyDown("1"))
+            {
+                transform.position = new Vector3(0f, -3.4f, 0f);
+            }
+            else if (Input.GetKeyDown("2"))
+            {
+                transform.position = new Vector3(-2.4f, 6.4f, 0f);
+            }
+            else if (Input.GetKeyDown("3"))
+            {
+                transform.position = new Vector3(-4.2f, 15.7f, 0f);
+            }
+            else if (Input.GetKeyDown("4"))
+            {
+                transform.position = new Vector3(4.6f, 25.5f, 0f);
+            }
+            else if (Input.GetKeyDown("5"))
+            {
+                transform.position = new Vector3(0f, 33.6f, 0f);
+            }
+            else if (Input.GetKeyDown("6"))
+            {
+                transform.position = new Vector3(0f, 46.5f, 0f);
+            }
+        }
+    }
+
+    public void TogglePracticeMode()
+    {
+        practiceMode = !practiceMode;
     }
 }

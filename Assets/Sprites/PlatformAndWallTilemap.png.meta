@@ -147,27 +147,6 @@ TextureImporter:
       name: PlatformAndWallTilemap_1
       rect:
         serializedVersion: 2
-        x: 16
-        y: 112
-        width: 16
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: cda9e89d699d5aa44995470ca67b2963
-      internalID: 19923140
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlatformAndWallTilemap_2
-      rect:
-        serializedVersion: 2
         x: 0
         y: 96
         width: 16
@@ -179,7 +158,28 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2bda06b972a2acd4982bde1229efcaf9
+      spriteID: c7af36ca36e1c4e4989151b1b9d89be8
+      internalID: 19923140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlatformAndWallTilemap_2
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 96
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e3d28803c0a07d042a5cf46a4399ca5a
       internalID: 1618125778
       vertices: []
       indices: 
@@ -200,8 +200,71 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5a6ec6d8717cd0544b2c2a64db813135
+      spriteID: d252b77d84ccb514fb14d9823fec0289
       internalID: -70898945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlatformAndWallTilemap_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 64
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 56859e5bc9d554542bc71f7f5d76881a
+      internalID: -115899782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlatformAndWallTilemap_5
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0dde25bc3b48c554dbb82d926cf23029
+      internalID: -438164876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlatformAndWallTilemap_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 29f10da93234b1149b3803778b926198
+      internalID: 2007776420
       vertices: []
       indices: 
       edges: []
@@ -221,6 +284,9 @@ TextureImporter:
       PlatformAndWallTilemap_1: 19923140
       PlatformAndWallTilemap_2: 1618125778
       PlatformAndWallTilemap_3: -70898945
+      PlatformAndWallTilemap_4: -115899782
+      PlatformAndWallTilemap_5: -438164876
+      PlatformAndWallTilemap_6: 2007776420
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -25,5 +25,11 @@ public class MenuController : MonoBehaviour
     public void returnToMainMenu()
     {
         SceneManager.LoadScene("MainMenu");
+        Time.timeScale = 1;
+    }
+
+    public void quitApplication()
+    {
+        Application.Quit();
     }
 }
